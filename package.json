@@ -1,0 +1,24 @@
+{
+  "name": "defictl",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A Bun-based TypeScript CLI for Morpho and Hyperliquid vault discovery.",
+  "type": "module",
+  "packageManager": "bun@1.3.11",
+  "bin": {
+    "defictl": "./src/index.ts"
+  },
+  "scripts": {
+    "defictl": "bun run src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.1",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+bun-debug.log*
+
+# OS and editor files
+.DS_Store
+.idea/
