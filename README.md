@@ -18,18 +18,20 @@ Run the CLI directly with Bun:
 
 ```bash
 bun run src/index.ts morpho 5
-bun run src/index.ts hl
-bun run src/index.ts hl 20260318
-bun run src/index.ts hl 20260318-151515
+bun run src/index.ts hl vault
+bun run src/index.ts hl vault 20260318
+bun run src/index.ts hl vault 20260318-151515
+bun run src/index.ts hl funding eurusd
 ```
 
 Run it through the package binary name:
 
 ```bash
 bun run defictl -- morpho 5
-bun run defictl -- hl
-bun run defictl -- hl 20260318
-bun run defictl -- hl 20260318-151515
+bun run defictl -- hl vault
+bun run defictl -- hl vault 20260318
+bun run defictl -- hl vault 20260318-151515
+bun run defictl -- hl funding eurusd
 ```
 
 Link the binary globally if you want the `defictl` command in your shell:
@@ -37,16 +39,18 @@ Link the binary globally if you want the `defictl` command in your shell:
 ```bash
 bun link
 defictl morpho 5
-defictl hl
-defictl hl 20260318
-defictl hl 20260318-151515
+defictl hl vault
+defictl hl vault 20260318
+defictl hl vault 20260318-151515
+defictl hl funding eurusd
 ```
 
 ## Commands
 
 ```bash
 defictl morpho <minWeeklyApyPercent>
-defictl hl [date]
+defictl hl vault [date]
+defictl hl funding <pair>
 ```
 
 Examples:
@@ -54,9 +58,10 @@ Examples:
 ```bash
 defictl morpho 5
 defictl morpho 6.5
-defictl hl
-defictl hl 20260318
-defictl hl 20260318-151515
+defictl hl vault
+defictl hl vault 20260318
+defictl hl vault 20260318-151515
+defictl hl funding eurusd
 ```
 
 `5` means `>= 5.00%` 7-day rolling APY, with TVL strictly above `$1.00M`.
@@ -78,6 +83,8 @@ defictl hl 20260318-151515
 
 ## Hyperliquid behavior
 
+### `hl vault`
+
 - Fetches the main Hyperliquid vault with the official `vaultDetails` info endpoint
 - Uses the current Hyperliquidity Provider (HLP) vault address: `0xdfc24b077bc1425ad1dea75bcb6f8158e10df303`
 - Computes annualized APY estimates for `1 day`, `3 days`, `1 week`, `2 weeks`, `1 month`, `2 months`, `3 months`, `6 months`, and `1 year`
@@ -90,8 +97,18 @@ defictl hl 20260318-151515
 - Annualizes each period return with `((1 + periodReturn) ** (365 / periodDays) - 1) * 100`
 - When you pass a date, computes the cumulative time-weighted return from that date to today and converts it to a simple annualized APR
 - Uses the closest earlier snapshot for each requested lookback boundary
-- Shows `N/A` when a period cannot be computed from the available history
+- Shows `NA` when a period cannot be computed from the available history
 - Prints a two-column terminal table with `Period` and `APY`, or `APR` when a start date is provided
+
+### `hl funding`
+
+- Resolves friendly pair inputs such as `btcusd`, `eurusd`, `BTC`, or `xyz:EUR` to Hyperliquid's canonical perp market names
+- Uses the official `allPerpMetas` info endpoint so builder-deployed markets such as `xyz:EUR` are supported
+- Fetches historical funding data with the official `fundingHistory` info endpoint
+- Computes the average observed hourly funding rate over the same periods used by `hl vault`: `1 day`, `3 days`, `1 week`, `2 weeks`, `1 month`, `2 months`, `3 months`, `6 months`, and `1 year`
+- Annualizes each period's average funding rate with `averageHourlyFundingRate * 24 * 365 * 100`
+- Shows `NA` when a period cannot be computed from the available funding history
+- Prints the same two-column terminal table with `Period` and `Annualized Funding`
 
 ## Development
 
