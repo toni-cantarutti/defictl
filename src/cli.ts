@@ -1,8 +1,17 @@
 import Table from "cli-table3";
 import { Command, InvalidArgumentError } from "commander";
 
-import { fetchMainHyperliquidVaultDetails } from "./hyperliquid/api";
+import {
+  fetchAllHyperliquidPerpMetas,
+  fetchHyperliquidFundingHistory,
+  fetchMainHyperliquidVaultDetails,
+} from "./hyperliquid/api";
 import { parseHyperliquidDateArg } from "./hyperliquid/date";
+import {
+  buildHyperliquidFundingRateRows,
+  resolveHyperliquidPerpMarket,
+} from "./hyperliquid/funding";
+import { HYPERLIQUID_RETURN_PERIODS } from "./hyperliquid/constants";
 import {
   buildHyperliquidReturnRows,
   buildHyperliquidSinceDateAprRow,
@@ -51,14 +60,14 @@ function renderMorphoTable(vaults: NormalizedVault[]): string {
 
 function renderHyperliquidTable(
   rows: HyperliquidRateRow[],
-  valueLabel: "APY" | "APR",
+  valueLabel: "APY" | "APR" | "Annualized Funding",
 ): string {
   const table = createDefaultTable(["Period", valueLabel], ["left", "right"]);
 
   for (const row of rows) {
     table.push([
       row.periodLabel,
-      formatNullablePercent(row.apyPct),
+      formatNullablePercent(row.ratePct),
     ]);
   }
 
@@ -90,14 +99,14 @@ async function runMorphoCommand(minWeeklyApyPercent: number): Promise<void> {
   console.log(renderMorphoTable(filteredVaults));
 }
 
-async function runHyperliquidCommand(): Promise<void> {
+async function runHyperliquidVaultCommand(): Promise<void> {
   const vaultDetails = await fetchMainHyperliquidVaultDetails();
   const returnRows = buildHyperliquidReturnRows(vaultDetails);
 
   console.log(renderHyperliquidTable(returnRows, "APY"));
 }
 
-async function runHyperliquidSinceDateCommand(
+async function runHyperliquidVaultSinceDateCommand(
   startDate: ReturnType<typeof parseHyperliquidDateArg>,
 ): Promise<void> {
   const vaultDetails = await fetchMainHyperliquidVaultDetails();
@@ -110,13 +119,27 @@ async function runHyperliquidSinceDateCommand(
   console.log(renderHyperliquidTable([row], "APR"));
 }
 
+async function runHyperliquidFundingRateCommand(pair: string): Promise<void> {
+  const maxLookbackMs =
+    HYPERLIQUID_RETURN_PERIODS[HYPERLIQUID_RETURN_PERIODS.length - 1].lookbackMs;
+  const allPerpMetas = await fetchAllHyperliquidPerpMetas();
+  const canonicalPair = resolveHyperliquidPerpMarket(pair, allPerpMetas);
+  const fundingHistory = await fetchHyperliquidFundingHistory(
+    canonicalPair,
+    Date.now() - maxLookbackMs,
+  );
+  const rows = buildHyperliquidFundingRateRows(fundingHistory);
+
+  console.log(renderHyperliquidTable(rows, "Annualized Funding"));
+}
+
 export async function runCli(argv: string[]): Promise<void> {
   const program = new Command();
 
   program
     .name("defictl")
-    .description("A CLI client for Morpho vault discovery and Hyperliquid vault performance.")
-    .showHelpAfterError("(Run `defictl morpho <minWeeklyApyPercent>`, `defictl hl`, `defictl hl 20260318`, or `defictl hl 20260318-151515`.)");
+    .description("A CLI client for Morpho vault discovery and Hyperliquid vault performance/funding.")
+    .showHelpAfterError("(Run `defictl morpho <minWeeklyApyPercent>`, `defictl hl vault`, `defictl hl vault 20260318`, or `defictl hl funding eurusd`.)");
 
   program
     .command("morpho")
@@ -140,8 +163,16 @@ export async function runCli(argv: string[]): Promise<void> {
       await runMorphoCommand(minWeeklyApyPercent);
     });
 
-  program
+  const hyperliquidCommand = program
     .command("hl")
+    .description("Hyperliquid vault analytics and perp funding rates.");
+
+  hyperliquidCommand.action(() => {
+    console.log(hyperliquidCommand.helpInformation());
+  });
+
+  hyperliquidCommand
+    .command("vault")
     .description("Show multi-period annualized APY estimates, or a since-date annualized APR, for the main Hyperliquid vault.")
     .argument(
       "[date]",
@@ -160,11 +191,22 @@ export async function runCli(argv: string[]): Promise<void> {
     )
     .action(async (date?: ReturnType<typeof parseHyperliquidDateArg>) => {
       if (date === undefined) {
-        await runHyperliquidCommand();
+        await runHyperliquidVaultCommand();
         return;
       }
 
-      await runHyperliquidSinceDateCommand(date);
+      await runHyperliquidVaultSinceDateCommand(date);
+    });
+
+  hyperliquidCommand
+    .command("funding")
+    .description("Show multi-period annualized funding APR estimates for a Hyperliquid perp market.")
+    .argument(
+      "<pair>",
+      "Hyperliquid pair, for example `BTC`, `btcusd`, `xyz:EUR`, or `eurusd`.",
+    )
+    .action(async (pair: string) => {
+      await runHyperliquidFundingRateCommand(pair);
     });
 
   try {

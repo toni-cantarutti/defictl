@@ -208,7 +208,7 @@ describe("buildHyperliquidReturnRows", () => {
       "6 months",
       "1 year",
     ]);
-    expect(rows.every((row) => row.apyPct === null)).toBe(true);
+    expect(rows.every((row) => row.ratePct === null)).toBe(true);
   });
 
   test("builds a since-date APR row from the all-time portfolio", () => {
@@ -238,8 +238,8 @@ describe("buildHyperliquidReturnRows", () => {
     const row = buildHyperliquidSinceDateAprRow(vaultDetails, 2_500, "2026-03-18");
 
     expect(row.periodLabel).toBe("Since 2026-03-18");
-    expect(row.apyPct).not.toBeNull();
-    expect(row.apyPct!).toBeCloseTo(150171428.57142875, 10);
+    expect(row.ratePct).not.toBeNull();
+    expect(row.ratePct!).toBeCloseTo(150171428.57142875, 10);
   });
 
   test("merges finer recent history into longer-range calculations", () => {

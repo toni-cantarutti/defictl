@@ -26,5 +26,5 @@ export function formatPercent(value: number): string {
 }
 
 export function formatNullablePercent(value: number | null): string {
-  return value === null ? "N/A" : formatPercent(value);
+  return value === null ? "NA" : formatPercent(value);
 }

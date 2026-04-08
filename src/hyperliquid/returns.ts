@@ -357,7 +357,7 @@ export function buildHyperliquidReturnRows(
 
   return HYPERLIQUID_RETURN_PERIODS.map((period) => ({
     periodLabel: period.label,
-    apyPct: (() => {
+    ratePct: (() => {
       const returnEstimate = selectMostPreciseReturnEstimateForLookback(
         pointsByWindow,
         period.lookbackMs,
@@ -383,7 +383,7 @@ export function buildHyperliquidSinceDateAprRow(
 
   return {
     periodLabel: `Since ${displayLabel}`,
-    apyPct: returnEstimate === null
+    ratePct: returnEstimate === null
       ? null
       : annualizeReturnToAprPct(
           returnEstimate.returnPct,
