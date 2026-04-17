@@ -5,7 +5,8 @@ import {
   V1_VAULTS_QUERY,
   V2_VAULTS_QUERY,
 } from "./queries";
-import { ALLOWED_ASSET_SYMBOLS, MIN_TVL_USD } from "./constants";
+import { MIN_TVL_USD } from "./constants";
+import { formatMorphoAssetSymbols, resolveMorphoAssetSymbols } from "./assets";
 import {
   normalizeV1Vault,
   normalizeV2Vault,
@@ -90,16 +91,16 @@ async function fetchAllPages<TItem>(
   return items;
 }
 
-async function fetchVaultV1List(): Promise<VaultV1ListItem[]> {
+async function fetchVaultV1List(assetSymbols: ReadonlyArray<string>): Promise<VaultV1ListItem[]> {
   return fetchAllPages<VaultV1ListItem>(V1_VAULTS_QUERY, "vaults", {
-    assetSymbols: [...ALLOWED_ASSET_SYMBOLS],
+    assetSymbols: [...assetSymbols],
     minTvlUsd: MIN_TVL_USD,
   });
 }
 
-async function fetchAllowedAssets(): Promise<AssetListItem[]> {
+async function fetchAllowedAssets(assetSymbols: ReadonlyArray<string>): Promise<AssetListItem[]> {
   return fetchAllPages<AssetListItem>(ASSETS_QUERY, "assets", {
-    assetSymbols: [...ALLOWED_ASSET_SYMBOLS],
+    assetSymbols: [...assetSymbols],
   });
 }
 
@@ -141,11 +142,15 @@ async function resolveV2Vaults(vaults: VaultV2ListItem[]): Promise<{
   };
 }
 
-export async function fetchMorphoVaults(): Promise<FetchMorphoVaultsResult> {
+export async function fetchMorphoVaults(
+  assetSymbols?: ReadonlyArray<string>,
+): Promise<FetchMorphoVaultsResult> {
   const warnings: string[] = [];
+  const resolvedAssetSymbols = resolveMorphoAssetSymbols(assetSymbols);
+  const assetSymbolLabel = formatMorphoAssetSymbols(resolvedAssetSymbols);
 
-  const assetsPromise = fetchAllowedAssets();
-  const v1Promise = fetchVaultV1List();
+  const assetsPromise = fetchAllowedAssets(resolvedAssetSymbols);
+  const v1Promise = fetchVaultV1List(resolvedAssetSymbols);
   const v2Promise = assetsPromise
     .then((assets) => fetchVaultV2List(assets.map((asset) => asset.address)))
     .catch(() => fetchVaultV2List());
@@ -161,11 +166,11 @@ export async function fetchMorphoVaults(): Promise<FetchMorphoVaultsResult> {
 
   if (assetsResult.status === "rejected") {
     warnings.push(
-      `Failed to fetch Morpho asset addresses for ${ALLOWED_ASSET_SYMBOLS.join("/")} filtering. Falling back to a slower V2 query: ${assetsResult.reason instanceof Error ? assetsResult.reason.message : "unknown error"}`,
+      `Failed to fetch Morpho asset addresses for ${assetSymbolLabel} filtering. Falling back to a slower V2 query: ${assetsResult.reason instanceof Error ? assetsResult.reason.message : "unknown error"}`,
     );
   } else if (assetsResult.value.length === 0) {
     warnings.push(
-      `No Morpho assets matched ${ALLOWED_ASSET_SYMBOLS.join("/")} on the available Morpho chains.`,
+      `No Morpho assets matched ${assetSymbolLabel} on the available Morpho chains.`,
     );
   }
 

@@ -79,6 +79,34 @@ describe("selectMorphoVaults", () => {
     expect(selectedVaults.map((vault) => vault.name)).toEqual(["usdc", "usds"]);
   });
 
+  test("keeps only vaults for the requested asset filter when provided", () => {
+    const selectedVaults = selectMorphoVaults(
+      [
+        createVault("usdc", 2_000_000, 8, "USDC"),
+        createVault("ausd", 2_000_000, 8, "AUSD"),
+        createVault("usds", 2_000_000, 8, "USDS"),
+      ],
+      5,
+      ["ausd"],
+    );
+
+    expect(selectedVaults.map((vault) => vault.name)).toEqual(["ausd"]);
+  });
+
+  test("keeps vaults matching any requested asset in a comma-style asset list", () => {
+    const selectedVaults = selectMorphoVaults(
+      [
+        createVault("usdc", 2_000_000, 8, "USDC"),
+        createVault("ausd", 2_000_000, 8, "AUSD"),
+        createVault("usds", 2_000_000, 8, "USDS"),
+      ],
+      5,
+      ["ausd", "usdc"],
+    );
+
+    expect(selectedVaults.map((vault) => vault.name)).toEqual(["usdc", "ausd"]);
+  });
+
   test("keeps only vaults that are listed", () => {
     const selectedVaults = selectMorphoVaults(
       [

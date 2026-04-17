@@ -18,6 +18,9 @@ Run the CLI directly with Bun:
 
 ```bash
 bun run src/index.ts morpho 5
+bun run src/index.ts morpho usdc 5
+bun run src/index.ts morpho ausd 5
+bun run src/index.ts morpho usdc,ausd 5
 bun run src/index.ts hl vault
 bun run src/index.ts hl vault 20260318
 bun run src/index.ts hl vault 20260318-151515
@@ -28,6 +31,9 @@ Run it through the package binary name:
 
 ```bash
 bun run defictl -- morpho 5
+bun run defictl -- morpho usdc 5
+bun run defictl -- morpho ausd 5
+bun run defictl -- morpho usdc,ausd 5
 bun run defictl -- hl vault
 bun run defictl -- hl vault 20260318
 bun run defictl -- hl vault 20260318-151515
@@ -39,6 +45,9 @@ Link the binary globally if you want the `defictl` command in your shell:
 ```bash
 bun link
 defictl morpho 5
+defictl morpho usdc 5
+defictl morpho ausd 5
+defictl morpho usdc,ausd 5
 defictl hl vault
 defictl hl vault 20260318
 defictl hl vault 20260318-151515
@@ -48,7 +57,7 @@ defictl hl funding eurusd
 ## Commands
 
 ```bash
-defictl morpho <minWeeklyApyPercent>
+defictl morpho [assetSymbols] <minWeeklyApyPercent>
 defictl hl vault [date]
 defictl hl funding <pair>
 ```
@@ -58,13 +67,16 @@ Examples:
 ```bash
 defictl morpho 5
 defictl morpho 6.5
+defictl morpho usdc 5
+defictl morpho ausd 5
+defictl morpho usdc,ausd 5
 defictl hl vault
 defictl hl vault 20260318
 defictl hl vault 20260318-151515
 defictl hl funding eurusd
 ```
 
-`5` means `>= 5.00%` 7-day rolling APY, with TVL strictly above `$1.00M`.
+`defictl morpho 5` means `>= 5.00%` 7-day rolling APY, with TVL strictly above `$1.00M`, using the default `USDC`/`USDS` asset filter.
 
 ## Morpho behavior
 
@@ -74,11 +86,13 @@ defictl hl funding eurusd
 - Uses the same 7-day APY source as [`morpho.gs`](/home/tonic/dev/defictl/morpho.gs): `avgNetApy(lookback: SEVEN_DAYS)` on the Morpho Blue API
 - Keeps only vaults that are marked as listed by Morpho
 - Excludes vaults that Morpho marks with paused deposits (`deposit_disabled`)
-- Keeps only vaults whose underlying asset symbol is `USDC` or `USDS`
+- Keeps only vaults whose underlying asset symbol is `USDC` or `USDS` by default
+- When you pass an asset symbol such as `usdc` or `ausd`, keeps only vaults for that asset instead
+- When you pass a comma-separated asset list such as `usdc,ausd`, keeps vaults for any asset in that list
 - Filters vaults whose 7-day rolling APY is greater than or equal to the threshold you pass on the command line
 - Keeps only vaults whose TVL is strictly above `$1.00M`
 - Sorts matches by TVL in descending order
-- Prints a five-column terminal table with `Vault`, `TVL`, `7D Rolling APY`, `Chain`, and `Version`
+- Prints a six-column terminal table with `Vault`, `TVL`, `7D Rolling APY`, `Asset`, `Chain`, and `Version`
 - Uses clickable Morpho frontend hyperlinks in the Vault column when the terminal supports OSC 8 hyperlinks
 
 ## Hyperliquid behavior
