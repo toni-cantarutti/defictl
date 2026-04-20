@@ -66,17 +66,28 @@ describe("selectMorphoVaults", () => {
     expect(selectedVaults.map((vault) => vault.name)).toEqual(["above"]);
   });
 
-  test("keeps only vaults whose asset is USDC or USDS", () => {
+  test("keeps only vaults whose asset is in the default stablecoin filter", () => {
     const selectedVaults = selectMorphoVaults(
       [
+        createVault("ausd", 2_000_000, 8, "AUSD"),
+        createVault("pyusd", 2_000_000, 8, "PYUSD"),
+        createVault("susds", 2_000_000, 8, "SUSDS"),
         createVault("usdc", 2_000_000, 8, "USDC"),
-        createVault("usds", 2_000_000, 8, "USDS"),
         createVault("usdt", 2_000_000, 8, "USDT"),
+        createVault("usds", 2_000_000, 8, "USDS"),
+        createVault("weth", 2_000_000, 8, "WETH"),
       ],
       5,
     );
 
-    expect(selectedVaults.map((vault) => vault.name)).toEqual(["usdc", "usds"]);
+    expect(selectedVaults.map((vault) => vault.name)).toEqual([
+      "ausd",
+      "pyusd",
+      "susds",
+      "usdc",
+      "usdt",
+      "usds",
+    ]);
   });
 
   test("keeps only vaults for the requested asset filter when provided", () => {

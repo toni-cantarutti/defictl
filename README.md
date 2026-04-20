@@ -76,7 +76,7 @@ defictl hl vault 20260318-151515
 defictl hl funding eurusd
 ```
 
-`defictl morpho 5` means `>= 5.00%` 7-day rolling APY, with TVL strictly above `$1.00M`, using the default `USDC`/`USDS` asset filter.
+`defictl morpho 5` means `>= 5.00%` 7-day rolling APY, with TVL strictly above `$1.00M`, using the default `USDC`/`USDT`/`AUSD`/`PYUSD`/`USDS`/`SUSDS` asset filter.
 
 ## Morpho behavior
 
@@ -86,7 +86,7 @@ defictl hl funding eurusd
 - Uses the same 7-day APY source as [`morpho.gs`](/home/tonic/dev/defictl/morpho.gs): `avgNetApy(lookback: SEVEN_DAYS)` on the Morpho Blue API
 - Keeps only vaults that are marked as listed by Morpho
 - Excludes vaults that Morpho marks with paused deposits (`deposit_disabled`)
-- Keeps only vaults whose underlying asset symbol is `USDC` or `USDS` by default
+- Keeps only vaults whose underlying asset symbol is `USDC`, `USDT`, `AUSD`, `PYUSD`, `USDS`, or `SUSDS` by default
 - When you pass an asset symbol such as `usdc` or `ausd`, keeps only vaults for that asset instead
 - When you pass a comma-separated asset list such as `usdc,ausd`, keeps vaults for any asset in that list
 - Filters vaults whose 7-day rolling APY is greater than or equal to the threshold you pass on the command line

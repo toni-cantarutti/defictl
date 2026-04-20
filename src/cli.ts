@@ -155,7 +155,7 @@ export async function runCli(argv: string[]): Promise<void> {
   program
     .command("morpho")
     .usage("[assetSymbols] <minWeeklyApyPercent>")
-    .description("List listed Morpho vaults for the default USDC/USDS asset filter, or for a specific asset symbol or comma-separated asset list you provide, whose 7-day rolling APY is at least the given threshold and whose TVL is above $1M.")
+    .description("List listed Morpho vaults for the default USDC/USDT/AUSD/PYUSD/USDS/SUSDS asset filter, or for a specific asset symbol or comma-separated asset list you provide, whose 7-day rolling APY is at least the given threshold and whose TVL is above $1M.")
     .argument(
       "[assetSymbols]",
       "Asset symbol or comma-separated asset list to filter by, for example `usdc` or `usdc,ausd`.",
