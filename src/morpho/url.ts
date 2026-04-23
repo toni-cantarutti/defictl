@@ -5,6 +5,10 @@ function normalizeAddress(address: string): string | null {
   return trimmedAddress.length > 0 ? trimmedAddress : null;
 }
 
+function normalizeNetworkPathSegment(network: string): string {
+  return network.trim().toLowerCase().replace(/\s+/g, "");
+}
+
 export function slugifyVaultName(name: string): string {
   return name
     .trim()
@@ -26,7 +30,7 @@ export function buildMorphoVaultUrl(params: {
   }
 
   const slug = slugifyVaultName(params.name);
-  const network = params.network.trim().toLowerCase();
+  const network = normalizeNetworkPathSegment(params.network);
 
   if (network.length === 0 || slug.length === 0) {
     return `${FALLBACK_BASE_URL}?vault=${encodeURIComponent(address)}`;

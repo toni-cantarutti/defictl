@@ -13,6 +13,18 @@ describe("buildMorphoVaultUrl", () => {
     ).toBe("https://app.morpho.org/ethereum/vault/0x1234/steakhouse-usdc");
   });
 
+  test("normalizes OP Mainnet to Morpho's canonical network route", () => {
+    expect(
+      buildMorphoVaultUrl({
+        address: "0xC30ce6A5758786e0F640cC5f881Dd96e9a1C5C59",
+        name: "Gauntlet USDC Prime",
+        network: "OP Mainnet",
+      }),
+    ).toBe(
+      "https://app.morpho.org/opmainnet/vault/0xC30ce6A5758786e0F640cC5f881Dd96e9a1C5C59/gauntlet-usdc-prime",
+    );
+  });
+
   test("falls back when the canonical network path cannot be built", () => {
     expect(
       buildMorphoVaultUrl({
